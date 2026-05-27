@@ -1,0 +1,75 @@
+{
+    "domains": [
+        "cloud.kodik-cdn.com",
+        "cloud.kodik-storage.com",
+        "dysprosium.cloud.kodik-storage.com",
+        "hronos.cloud.kodik-storage.com",
+        "kodik-add.com",
+        "kodik.info",
+        "kodikapi.com",
+        "kodikdb.com",
+        "osmium.cloud.kodik-storage.com",
+        "protactinium.cloud.kodik-storage.com",
+        "pulse.cloud.kodik-cdn.com",
+        "red.cloud.kodik-storage.com",
+        "saturn.cloud.kodik-storage.com",
+        "scorpius.cloud.kodik-storage.com",
+        "st-5cva8vttppvjafpc7jvj.kodik.biz",
+        "venus.cloud.kodik-storage.com",
+        "wt.kodik.biz"
+    ],
+    "dns": [
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53",
+        "1.1.1.1:53"
+    ],
+    "timeout": 3600,
+    "ip4": [
+        "135.181.118.173",
+        "176.58.38.155",
+        "176.58.38.51",
+        "176.58.39.99",
+        "176.58.41.163",
+        "176.58.45.195",
+        "176.58.45.207",
+        "176.58.47.195",
+        "176.58.48.48",
+        "178.132.0.165",
+        "185.184.195.148",
+        "185.190.189.239",
+        "185.80.234.195",
+        "190.115.16.16",
+        "212.124.96.15",
+        "5.45.64.58"
+    ],
+    "ip6": [],
+    "cidr4": [
+        "135.181.0.0/16",
+        "176.58.38.0/23",
+        "176.58.41.0/24",
+        "176.58.45.0/24",
+        "176.58.47.0/24",
+        "176.58.48.0/23",
+        "178.132.0.0/24",
+        "185.184.195.0/24",
+        "185.190.189.0/24",
+        "185.80.234.0/24",
+        "190.115.16.0/24",
+        "212.124.96.0/24",
+        "5.45.64.0/21",
+        "5.45.72.0/22"
+    ],
+    "cidr6": [],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {},
+        "cidr6": {}
+    }
+}
