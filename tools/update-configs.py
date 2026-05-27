@@ -221,10 +221,19 @@ def collect_public_set(name: str, base_url: str) -> None:
         write_json(target / path_part(group) / f"{path_part(site)}.json", config)
 
 
+def normalize_config_modes() -> None:
+    for path in CONFIG_ROOT.rglob("*"):
+        if path.is_dir():
+            path.chmod(0o755)
+        else:
+            path.chmod(0o644)
+
+
 def main() -> int:
     collect_master()
     for name, base_url in PUBLIC_SETS.items():
         collect_public_set(name, base_url)
+    normalize_config_modes()
     return 0
 
 
