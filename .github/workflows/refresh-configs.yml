@@ -7,8 +7,6 @@ on:
       - main
     paths:
       - ".github/workflows/refresh-configs.yml"
-      - "tools/update-configs.py"
-      - "README.md"
   schedule:
     - cron: "17 */6 * * *"
 
