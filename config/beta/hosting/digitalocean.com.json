@@ -1,0 +1,94 @@
+{
+    "domains": [
+        "api.digitalocean.com",
+        "assets.digitalocean.com",
+        "cloud.digitalocean.com",
+        "cloudsupport.digitalocean.com",
+        "console.digitalocean.com",
+        "digitalocean.com",
+        "docs.digitalocean.com",
+        "email.digitalocean.com",
+        "push.digitalocean.com",
+        "segment.digitalocean.com",
+        "status.digitalocean.com",
+        "vpn-fra1.digitalocean.com",
+        "vpn-nyc3.digitalocean.com",
+        "vpn-sfo2.digitalocean.com",
+        "vpn-staging.digitalocean.com",
+        "vpn-syd1.digitalocean.com",
+        "vpnroaming.digitalocean.com",
+        "vpnuntrust-fra1.digitalocean.com",
+        "vpnuntrust-nyc3.digitalocean.com",
+        "vpnuntrust-sfo2.digitalocean.com",
+        "vpnuntrust-syd1.digitalocean.com",
+        "www.digitalocean.com"
+    ],
+    "dns": [
+        "1.1.1.1:53",
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53"
+    ],
+    "timeout": 0,
+    "ip4": [
+        "104.17.70.206",
+        "104.17.71.206",
+        "104.17.72.206",
+        "104.17.73.206",
+        "104.17.74.206",
+        "104.19.173.68",
+        "104.19.174.68",
+        "13.50.12.179",
+        "13.50.12.180",
+        "13.50.12.181",
+        "137.184.252.197",
+        "137.184.252.199",
+        "138.68.32.132",
+        "138.68.32.134",
+        "151.101.0.233",
+        "151.101.128.233",
+        "151.101.192.233",
+        "151.101.4.233",
+        "151.101.64.233",
+        "162.243.188.132",
+        "162.243.188.134",
+        "162.243.188.136",
+        "162.243.188.138",
+        "18.102.214.67",
+        "18.102.214.68",
+        "18.102.214.69",
+        "199.232.172.233",
+        "199.232.40.233",
+        "5.101.109.48",
+        "5.101.109.50"
+    ],
+    "ip6": [
+        "2606:4700::6813:ad44",
+        "2606:4700::6813:ae44"
+    ],
+    "cidr4": [
+        "104.16.0.0/12",
+        "13.48.0.0/13",
+        "137.184.0.0/16",
+        "138.68.0.0/16",
+        "151.101.0.0/16",
+        "162.243.0.0/16",
+        "18.64.0.0/10",
+        "199.232.0.0/16",
+        "5.101.104.0/21"
+    ],
+    "cidr6": [
+        "2606:4700::/32"
+    ],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {},
+        "cidr6": {}
+    }
+}

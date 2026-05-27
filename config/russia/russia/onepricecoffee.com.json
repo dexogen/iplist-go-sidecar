@@ -1,0 +1,56 @@
+{
+    "domains": [
+        "api.onepricecoffee.com",
+        "cloud.onepricecoffee.com",
+        "delivery.onepricecoffee.com",
+        "en.onepricecoffee.com",
+        "form.onepricecoffee.com",
+        "franchise.onepricecoffee.com",
+        "job.onepricecoffee.com",
+        "onepricecoffee.com",
+        "www.api.onepricecoffee.com",
+        "www.buybrand.sept2021.onepricecoffee.com",
+        "www.en.onepricecoffee.com",
+        "www.form.onepricecoffee.com",
+        "www.franchise.onepricecoffee.com",
+        "www.job.onepricecoffee.com",
+        "www.onepricecoffee.com"
+    ],
+    "dns": [
+        "1.1.1.1:53",
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53"
+    ],
+    "timeout": 0,
+    "ip4": [
+        "158.160.96.91",
+        "185.215.4.10",
+        "185.215.4.34",
+        "46.38.54.70",
+        "84.201.140.196"
+    ],
+    "ip6": [],
+    "cidr4": [
+        "158.160.0.0/16",
+        "185.215.4.0/26",
+        "46.38.48.0/21",
+        "84.201.128.0/18"
+    ],
+    "cidr6": [],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {
+            "84.201.128.0/18": [
+                "84.201.140.196/32"
+            ]
+        },
+        "cidr6": {}
+    }
+}

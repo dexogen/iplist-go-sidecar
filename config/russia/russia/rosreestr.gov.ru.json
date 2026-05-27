@@ -1,0 +1,78 @@
+{
+    "domains": [
+        "demo.nspd.rosreestr.gov.ru",
+        "dev.nspd.rosreestr.gov.ru",
+        "eir.rosreestr.gov.ru",
+        "hub.nspd.rosreestr.gov.ru",
+        "nspd.rosreestr.gov.ru",
+        "prod.nspd.rosreestr.gov.ru",
+        "prod2.nspd.rosreestr.gov.ru",
+        "rk.dev.nspd.rosreestr.gov.ru",
+        "rk.nspd.rosreestr.gov.ru",
+        "rk.prod2.nspd.rosreestr.gov.ru",
+        "rk.test.nspd.rosreestr.gov.ru",
+        "rosreestr.gov.ru",
+        "test-hotfix.nspd.rosreestr.gov.ru",
+        "test.nspd.rosreestr.gov.ru",
+        "www.nspd.rosreestr.gov.ru",
+        "www.rosreestr.gov.ru"
+    ],
+    "dns": [
+        "1.1.1.1:53",
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53"
+    ],
+    "timeout": 0,
+    "ip4": [
+        "188.254.105.125",
+        "2.63.246.100",
+        "2.63.246.101",
+        "2.63.246.102",
+        "2.63.246.115",
+        "2.63.246.116",
+        "2.63.246.117",
+        "2.63.246.71",
+        "2.63.246.72",
+        "2.63.246.73",
+        "2.63.246.74",
+        "2.63.246.75",
+        "2.63.246.76",
+        "2.63.246.81",
+        "2.63.246.82",
+        "2.63.246.83",
+        "2.63.246.84",
+        "2.63.246.85",
+        "2.63.246.86",
+        "2.63.246.91",
+        "2.63.246.92",
+        "2.63.246.93",
+        "217.77.104.132",
+        "217.77.104.150",
+        "95.167.134.65",
+        "95.167.134.66",
+        "95.167.134.67",
+        "95.167.134.68",
+        "95.167.134.69",
+        "95.167.134.70"
+    ],
+    "ip6": [],
+    "cidr4": [
+        "188.254.96.0/20",
+        "2.63.128.0/17",
+        "217.77.104.0/21",
+        "95.167.132.0/22"
+    ],
+    "cidr6": [],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {},
+        "cidr6": {}
+    }
+}

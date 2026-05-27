@@ -1,0 +1,35 @@
+{
+    "domains": [
+        "app.bestbenefits.ru",
+        "bestbenefits.ru",
+        "mobile.bestbenefits.ru",
+        "www.app.bestbenefits.ru",
+        "www.bestbenefits.ru"
+    ],
+    "dns": [
+        "1.1.1.1:53",
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53"
+    ],
+    "timeout": 0,
+    "ip4": [
+        "89.108.121.179"
+    ],
+    "ip6": [],
+    "cidr4": [
+        "89.108.121.0/24"
+    ],
+    "cidr6": [],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {},
+        "cidr6": {}
+    }
+}

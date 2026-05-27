@@ -1,0 +1,50 @@
+{
+    "domains": [
+        "24.mosenergosbyt.ru",
+        "lkk-mosobleirc.ru",
+        "mosenergosbyt.ru",
+        "my.mosenergosbyt.ru",
+        "promo.mosenergosbyt.ru",
+        "www.lkk-mosobleirc.ru",
+        "www.market.mosenergosbyt.ru",
+        "www.mosenergosbyt.ru",
+        "www.xn--90aijkdmaud0d.xn--p1ai",
+        "xn--90aijkdmaud0d.xn--p1ai"
+    ],
+    "dns": [
+        "1.1.1.1:53",
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53"
+    ],
+    "timeout": 0,
+    "ip4": [
+        "185.26.112.179",
+        "195.19.96.179",
+        "195.82.140.164",
+        "195.82.140.188",
+        "195.82.140.210",
+        "195.82.140.214",
+        "195.82.140.228",
+        "91.236.136.168"
+    ],
+    "ip6": [],
+    "cidr4": [
+        "185.26.112.0/23",
+        "195.19.96.0/20",
+        "195.82.140.0/24",
+        "91.236.136.0/24"
+    ],
+    "cidr6": [],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {},
+        "cidr6": {}
+    }
+}

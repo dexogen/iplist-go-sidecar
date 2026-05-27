@@ -1,0 +1,102 @@
+{
+    "domains": [
+        "1l-go.vkplay.ru",
+        "3k.vkplay.ru",
+        "allods.vkplay.ru",
+        "api.cloud.vkplay.ru",
+        "api.vkplay.ru",
+        "chat.vkplay.ru",
+        "cloud.vkplay.ru",
+        "dwar.vkplay.ru",
+        "events.cloud.vkplay.ru",
+        "gm2.vkplay.ru",
+        "jugger.vkplay.ru",
+        "live.vkplay.ru",
+        "ncr.vkplay.ru",
+        "parapa.vkplay.ru",
+        "partners.cloud.vkplay.ru",
+        "predprod.cloud.vkplay.ru",
+        "predprod2.cloud.vkplay.ru",
+        "pvp.vkplay.ru",
+        "r3.vkplay.ru",
+        "sezam-status.vkplay.ru",
+        "stand.atomicheart.vkplay.ru",
+        "stand.bt2.vkplay.ru",
+        "stand.bundle.vkplay.ru",
+        "stand.hw.vkplay.ru",
+        "stand.revival.vkplay.ru",
+        "stand.wanteddead.vkplay.ru",
+        "stand.wrf.vkplay.ru",
+        "stand.xtract.vkplay.ru",
+        "static.cloud.vkplay.ru",
+        "streams.vkplay.ru",
+        "support.vkplay.ru",
+        "userapi.cloud.vkplay.ru",
+        "userevents.cloud.vkplay.ru",
+        "vkplay.ru",
+        "www.vkplay.ru"
+    ],
+    "dns": [
+        "1.1.1.1:53",
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53"
+    ],
+    "timeout": 0,
+    "ip4": [
+        "176.112.170.168",
+        "178.22.88.108",
+        "188.93.63.157",
+        "195.211.131.161",
+        "195.211.131.162",
+        "89.221.236.21",
+        "89.221.236.4",
+        "90.156.232.5",
+        "92.38.244.148",
+        "92.38.244.21",
+        "92.38.245.174",
+        "92.38.245.222",
+        "95.163.40.129",
+        "95.163.60.44",
+        "95.163.61.41",
+        "95.163.61.42",
+        "95.163.61.43",
+        "95.163.61.45",
+        "95.163.61.54",
+        "95.163.61.66",
+        "95.181.181.46"
+    ],
+    "ip6": [
+        "2a14:25c0:9100:b000::2"
+    ],
+    "cidr4": [
+        "176.112.168.0/21",
+        "178.22.88.0/21",
+        "188.93.56.0/21",
+        "195.211.128.0/22",
+        "89.221.232.0/21",
+        "90.156.232.0/21",
+        "92.38.244.0/22",
+        "95.163.40.0/21",
+        "95.163.48.0/20",
+        "95.181.176.0/21"
+    ],
+    "cidr6": [
+        "2a14:25c0::/29"
+    ],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {
+            "95.181.176.0/21": [
+                "95.181.181.46/32"
+            ]
+        },
+        "cidr6": {}
+    }
+}

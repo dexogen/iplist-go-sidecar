@@ -1,0 +1,87 @@
+{
+    "domains": [
+        "9may.avtodor-tr.ru",
+        "atlas.avtodor-tr.ru",
+        "auth-lkmp.avtodor-tr.ru",
+        "avtodor-tr.ru",
+        "biglove.avtodor-tr.ru",
+        "drive.avtodor-tr.ru",
+        "dte.avtodor-tr.ru",
+        "evotor.avtodor-tr.ru",
+        "game.avtodor-tr.ru",
+        "leto.avtodor-tr.ru",
+        "lk.avtodor-tr.ru",
+        "love.avtodor-tr.ru",
+        "loyalty.avtodor-tr.ru",
+        "mail.avtodor-tr.ru",
+        "news.avtodor-tr.ru",
+        "pay.avtodor-tr.ru",
+        "pays.avtodor-tr.ru",
+        "pro.avtodor-tr.ru",
+        "routelada.avtodor-tr.ru",
+        "sms.avtodor-tr.ru",
+        "space.avtodor-tr.ru",
+        "stat.avtodor-tr.ru",
+        "www.9may.avtodor-tr.ru",
+        "www.atlas.avtodor-tr.ru",
+        "www.avtodor-tr.ru",
+        "www.biglove.avtodor-tr.ru",
+        "www.drive.avtodor-tr.ru",
+        "www.leto.avtodor-tr.ru",
+        "www.love.avtodor-tr.ru",
+        "www.space.avtodor-tr.ru"
+    ],
+    "dns": [
+        "1.1.1.1:53",
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53"
+    ],
+    "timeout": 0,
+    "ip4": [
+        "13.248.148.104",
+        "185.111.100.194",
+        "185.111.100.83",
+        "185.111.100.91",
+        "185.111.102.2",
+        "185.111.103.210",
+        "185.129.100.112",
+        "185.165.123.36",
+        "185.215.4.16",
+        "213.108.130.162",
+        "76.223.20.46",
+        "91.215.41.74",
+        "91.215.41.77",
+        "91.215.43.171"
+    ],
+    "ip6": [],
+    "cidr4": [
+        "13.248.0.0/14",
+        "185.111.100.0/22",
+        "185.129.100.112/32",
+        "185.165.123.36/32",
+        "185.215.4.0/26",
+        "213.108.130.0/24",
+        "76.223.0.0/17",
+        "91.215.40.0/22"
+    ],
+    "cidr6": [],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {
+            "13.248.0.0/14": [
+                "13.248.148.104/32"
+            ],
+            "76.223.0.0/17": [
+                "76.223.20.46/32"
+            ]
+        },
+        "cidr6": {}
+    }
+}
