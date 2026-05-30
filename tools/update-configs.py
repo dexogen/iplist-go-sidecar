@@ -293,30 +293,49 @@ def count_entries(path: Path) -> dict[str, int]:
     return counts
 
 
-def assert_no_large_drop(name: str, previous: Path, collected: Path) -> None:
+def restore_field(previous: Path, collected: Path, field: str) -> None:
+    for old_path in previous.rglob("*.json"):
+        relative = old_path.relative_to(previous)
+        new_path = collected / relative
+        old_data = load_existing_site_config(old_path)
+        if not new_path.is_file():
+            write_json(new_path, old_data)
+            continue
+        new_data = load_existing_site_config(new_path)
+        old_values = as_string_list(old_data.get(field))
+        if not old_values:
+            continue
+        new_data[field] = old_values
+        write_json(new_path, new_data)
+
+
+def repair_large_drops(name: str, previous: Path, collected: Path) -> None:
     if os.getenv("IPLIST_REFRESH_ALLOW_LARGE_DROP", "").lower() in {"1", "true", "yes"}:
         return
-    old_counts = count_entries(previous)
-    new_counts = count_entries(collected)
     max_drop_ratio = float(os.getenv("IPLIST_REFRESH_MAX_DROP_RATIO", DEFAULT_MAX_DROP_RATIO))
-    failures: list[str] = []
-    for field in DATA_TYPES:
-        old = old_counts[field]
-        new = new_counts[field]
-        if old < 100:
-            continue
-        dropped = old - new
-        if dropped <= 0:
-            continue
-        ratio = dropped / old
-        if ratio > max_drop_ratio:
-            failures.append(f"{field}: {old} -> {new} (-{dropped}, -{ratio:.1%})")
-    if failures:
-        details = "; ".join(failures)
-        raise RuntimeError(
-            f"{name}: suspicious entry drop detected: {details}. "
-            "Set IPLIST_REFRESH_ALLOW_LARGE_DROP=true to accept it."
-        )
+    for _ in range(len(DATA_TYPES)):
+        old_counts = count_entries(previous)
+        new_counts = count_entries(collected)
+        repaired = False
+        for field in DATA_TYPES:
+            old = old_counts[field]
+            new = new_counts[field]
+            if old < 100:
+                continue
+            dropped = old - new
+            if dropped <= 0:
+                continue
+            ratio = dropped / old
+            if ratio > max_drop_ratio:
+                print(
+                    f"{name}: suspicious {field} drop {old} -> {new} "
+                    f"(-{dropped}, -{ratio:.1%}); restoring previous {field} values",
+                    file=sys.stderr,
+                )
+                restore_field(previous, collected, field)
+                repaired = True
+        if not repaired:
+            return
 
 
 def collect_master() -> None:
@@ -437,7 +456,7 @@ def collect_public_set(name: str, base_url: str) -> None:
             previous = load_existing_site_config(target / relative_path)
             config = build_site_config(base_url, site, previous)
             write_json(collected / relative_path, config)
-        assert_no_large_drop(name, target, collected)
+        repair_large_drops(name, target, collected)
         replace_dir(target, collected)
 
 
