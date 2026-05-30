@@ -12,6 +12,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +31,136 @@ DEFAULT_REPLACE = {"cidr4": {}, "cidr6": {}}
 DEFAULT_MAX_DROP_RATIO = 0.35
 
 
+@dataclass
+class FetchedJSON:
+    data: Any
+    damaged_paths: set[tuple[str, ...]]
+    repaired: bool
+
+
+def skip_ws(text: str, index: int) -> int:
+    while index < len(text) and text[index] in " \t\r\n":
+        index += 1
+    return index
+
+
+def parse_partial_array(text: str, index: int, path: tuple[str, ...]) -> tuple[list[Any], set[tuple[str, ...]], int, bool]:
+    decoder = json.JSONDecoder()
+    damaged = set()
+    result: list[Any] = []
+    index = skip_ws(text, index)
+    if index >= len(text) or text[index] != "[":
+        damaged.add(path)
+        return result, damaged, index, False
+    index += 1
+    while True:
+        index = skip_ws(text, index)
+        if index >= len(text):
+            damaged.add(path)
+            return result, damaged, index, False
+        if text[index] == "]":
+            return result, damaged, index + 1, True
+        try:
+            value, index = decoder.raw_decode(text, index)
+        except json.JSONDecodeError:
+            damaged.add(path)
+            return result, damaged, index, False
+        result.append(value)
+        index = skip_ws(text, index)
+        if index >= len(text):
+            damaged.add(path)
+            return result, damaged, index, False
+        if text[index] == ",":
+            index += 1
+            continue
+        if text[index] == "]":
+            return result, damaged, index + 1, True
+        damaged.add(path)
+        return result, damaged, index, False
+
+
+def parse_partial_object(text: str, index: int, path: tuple[str, ...] = ()) -> tuple[dict[str, Any], set[tuple[str, ...]], int, bool]:
+    decoder = json.JSONDecoder()
+    damaged = set()
+    result: dict[str, Any] = {}
+    index = skip_ws(text, index)
+    if index >= len(text) or text[index] != "{":
+        damaged.add(path)
+        return result, damaged, index, False
+    index += 1
+    while True:
+        index = skip_ws(text, index)
+        if index >= len(text):
+            damaged.add(path)
+            return result, damaged, index, False
+        if text[index] == "}":
+            return result, damaged, index + 1, True
+        try:
+            key, index = decoder.raw_decode(text, index)
+        except json.JSONDecodeError:
+            damaged.add(path)
+            return result, damaged, index, False
+        if not isinstance(key, str):
+            damaged.add(path)
+            return result, damaged, index, False
+        index = skip_ws(text, index)
+        if index >= len(text) or text[index] != ":":
+            damaged.add(path + (key,))
+            return result, damaged, index, False
+        index = skip_ws(text, index + 1)
+        try:
+            value, next_index = decoder.raw_decode(text, index)
+        except json.JSONDecodeError:
+            if index < len(text) and text[index] == "{":
+                value, nested_damaged, next_index, complete = parse_partial_object(text, index, path + (key,))
+                result[key] = value
+                damaged |= nested_damaged
+                if not complete:
+                    return result, damaged, next_index, False
+                index = next_index
+            elif index < len(text) and text[index] == "[":
+                value, nested_damaged, next_index, complete = parse_partial_array(text, index, path + (key,))
+                result[key] = value
+                damaged |= nested_damaged
+                if not complete:
+                    return result, damaged, next_index, False
+                index = next_index
+            else:
+                damaged.add(path + (key,))
+                return result, damaged, index, False
+        else:
+            result[key] = value
+            index = next_index
+        index = skip_ws(text, index)
+        if index >= len(text):
+            damaged.add(path)
+            return result, damaged, index, False
+        if text[index] == ",":
+            index += 1
+            continue
+        if text[index] == "}":
+            return result, damaged, index + 1, True
+        damaged.add(path)
+        return result, damaged, index, False
+
+
+def decode_json(text: str, url: str, allow_repair: bool = False) -> FetchedJSON:
+    try:
+        return FetchedJSON(json.loads(text), set(), False)
+    except json.JSONDecodeError as error:
+        if not allow_repair:
+            raise
+        repaired, damaged_paths, _, _ = parse_partial_object(text, 0)
+        if not repaired:
+            raise
+        print(
+            f"repaired partial JSON from {url!r}: {error}; "
+            f"damaged paths: {', '.join('/'.join(path) or '<root>' for path in sorted(damaged_paths))}",
+            file=sys.stderr,
+        )
+        return FetchedJSON(repaired, damaged_paths, True)
+
+
 def fetch_bytes(url: str, timeout: float = 120.0, retries: int = 2) -> bytes:
     last_error: Exception | None = None
     for attempt in range(retries + 1):
@@ -44,7 +175,7 @@ def fetch_bytes(url: str, timeout: float = 120.0, retries: int = 2) -> bytes:
     raise RuntimeError(f"failed to fetch {url}: {last_error}") from last_error
 
 
-def fetch_json(url: str, timeout: float = 60.0, retries: int = 2) -> Any:
+def fetch_json_result(url: str, timeout: float = 60.0, retries: int = 2, allow_repair: bool = False) -> FetchedJSON:
     last_error: Exception | None = None
     for attempt in range(retries + 1):
         try:
@@ -54,12 +185,26 @@ def fetch_json(url: str, timeout: float = 60.0, retries: int = 2) -> Any:
             )
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 charset = response.headers.get_content_charset() or "utf-8"
-                return json.loads(response.read().decode(charset))
+                text = response.read().decode(charset)
+                try:
+                    return decode_json(text, url)
+                except json.JSONDecodeError:
+                    if allow_repair and attempt == retries:
+                        return decode_json(text, url, allow_repair=True)
+                    raise
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
             last_error = error
             if attempt < retries:
                 time.sleep(1 + attempt)
     raise RuntimeError(f"failed to fetch JSON from {url!r}; {last_error}") from last_error
+
+
+def fetch_json(url: str, timeout: float = 60.0, retries: int = 2) -> Any:
+    return fetch_json_result(url, timeout=timeout, retries=retries).data
+
+
+def fetch_json_repaired(url: str, timeout: float = 60.0, retries: int = 2) -> FetchedJSON:
+    return fetch_json_result(url, timeout=timeout, retries=retries, allow_repair=True)
 
 
 def fetch_text_lines(url: str, timeout: float = 60.0, retries: int = 2) -> list[str]:
@@ -207,22 +352,31 @@ def discover_groups(base_url: str, fallback_group: str) -> dict[str, str]:
     raise RuntimeError(f"could not discover sites from {base_url}")
 
 
-def fetch_site_metadata(base_url: str, site: str) -> dict[str, Any]:
+def fetch_site_metadata(base_url: str, site: str) -> tuple[dict[str, Any], set[str]]:
     try:
-        data = fetch_json(api_url(base_url, {"format": "json", "site": site}))
+        result = fetch_json_repaired(api_url(base_url, {"format": "json", "site": site}))
     except RuntimeError as error:
         print(f"metadata fallback for {site}: {error}", file=sys.stderr)
-        return {}
+        return {}, set()
+    data = result.data
     if isinstance(data, dict) and isinstance(data.get(site), dict):
-        return data[site]
-    return {}
+        damaged_fields = {
+            path[1]
+            for path in result.damaged_paths
+            if len(path) > 1 and path[0] == site and path[1] in DATA_TYPES
+        }
+        return data[site], damaged_fields
+    return {}, set()
 
 
 def fetch_site_field(base_url: str, site: str, field: str, previous: dict[str, Any]) -> list[str]:
     json_url = api_url(base_url, {"format": "json", "data": field, "site": site})
     try:
-        data = fetch_json(json_url)
+        result = fetch_json_repaired(json_url)
+        data = result.data
         if isinstance(data, dict):
+            if (site,) in result.damaged_paths:
+                raise RuntimeError(f"partial JSON for {site}/{field} is unreliable")
             return as_string_list(data.get(site))
     except RuntimeError as error:
         print(f"text fallback for {site}/{field}: {error}", file=sys.stderr)
@@ -240,12 +394,12 @@ def fetch_site_field(base_url: str, site: str, field: str, previous: dict[str, A
 
 
 def build_site_config(base_url: str, site: str, previous: dict[str, Any]) -> dict[str, Any]:
-    metadata = fetch_site_metadata(base_url, site)
+    metadata, damaged_fields = fetch_site_metadata(base_url, site)
     values: dict[str, Any] = {}
 
     for field in DATA_TYPES:
         raw = metadata.get(field)
-        values[field] = as_string_list(raw) if isinstance(raw, list) else fetch_site_field(base_url, site, field, previous)
+        values[field] = as_string_list(raw) if isinstance(raw, list) and field not in damaged_fields else fetch_site_field(base_url, site, field, previous)
 
     dns = metadata.get("dns", previous.get("dns"))
     external = metadata.get("external", previous.get("external"))
