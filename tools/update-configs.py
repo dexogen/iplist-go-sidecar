@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -26,6 +27,7 @@ DATA_TYPES = ("domains", "ip4", "ip6", "cidr4", "cidr6")
 DEFAULT_DNS = ["127.0.0.11:53", "77.88.8.88:53", "8.8.8.8:53", "1.1.1.1:53"]
 DEFAULT_EXTERNAL = {name: [] for name in DATA_TYPES}
 DEFAULT_REPLACE = {"cidr4": {}, "cidr6": {}}
+DEFAULT_MAX_DROP_RATIO = 0.35
 
 
 def fetch_bytes(url: str, timeout: float = 120.0, retries: int = 2) -> bytes:
@@ -57,7 +59,7 @@ def fetch_json(url: str, timeout: float = 60.0, retries: int = 2) -> Any:
             last_error = error
             if attempt < retries:
                 time.sleep(1 + attempt)
-    raise RuntimeError(f"failed to fetch JSON from {url}: {last_error}") from last_error
+    raise RuntimeError(f"failed to fetch JSON from {url!r}; {last_error}") from last_error
 
 
 def fetch_text_lines(url: str, timeout: float = 60.0, retries: int = 2) -> list[str]:
@@ -116,6 +118,62 @@ def replace_dir(path: Path, source: Path) -> None:
     shutil.copytree(source, path)
 
 
+def load_existing_site_config(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        print(f"ignoring existing config {path}: {error}", file=sys.stderr)
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def count_entries(path: Path) -> dict[str, int]:
+    counts = {field: 0 for field in DATA_TYPES}
+    if not path.exists():
+        return counts
+    for config_path in path.rglob("*.json"):
+        try:
+            data = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            print(f"skip entry count for {config_path}: {error}", file=sys.stderr)
+            continue
+        if not isinstance(data, dict):
+            continue
+        for field in DATA_TYPES:
+            value = data.get(field)
+            if isinstance(value, list):
+                counts[field] += len(value)
+    return counts
+
+
+def assert_no_large_drop(name: str, previous: Path, collected: Path) -> None:
+    if os.getenv("IPLIST_REFRESH_ALLOW_LARGE_DROP", "").lower() in {"1", "true", "yes"}:
+        return
+    old_counts = count_entries(previous)
+    new_counts = count_entries(collected)
+    max_drop_ratio = float(os.getenv("IPLIST_REFRESH_MAX_DROP_RATIO", DEFAULT_MAX_DROP_RATIO))
+    failures: list[str] = []
+    for field in DATA_TYPES:
+        old = old_counts[field]
+        new = new_counts[field]
+        if old < 100:
+            continue
+        dropped = old - new
+        if dropped <= 0:
+            continue
+        ratio = dropped / old
+        if ratio > max_drop_ratio:
+            failures.append(f"{field}: {old} -> {new} (-{dropped}, -{ratio:.1%})")
+    if failures:
+        details = "; ".join(failures)
+        raise RuntimeError(
+            f"{name}: suspicious entry drop detected: {details}. "
+            "Set IPLIST_REFRESH_ALLOW_LARGE_DROP=true to accept it."
+        )
+
+
 def collect_master() -> None:
     print("collecting master from rekryt/iplist", file=sys.stderr)
     archive = fetch_bytes(MASTER_ARCHIVE_URL)
@@ -160,7 +218,7 @@ def fetch_site_metadata(base_url: str, site: str) -> dict[str, Any]:
     return {}
 
 
-def fetch_site_field(base_url: str, site: str, field: str) -> list[str]:
+def fetch_site_field(base_url: str, site: str, field: str, previous: dict[str, Any]) -> list[str]:
     json_url = api_url(base_url, {"format": "json", "data": field, "site": site})
     try:
         data = fetch_json(json_url)
@@ -173,20 +231,24 @@ def fetch_site_field(base_url: str, site: str, field: str) -> list[str]:
     try:
         return fetch_text_lines(text_url)
     except RuntimeError as error:
+        old_values = as_string_list(previous.get(field))
+        if old_values:
+            print(f"existing fallback for {site}/{field}: {error}", file=sys.stderr)
+            return old_values
         print(f"empty fallback for {site}/{field}: {error}", file=sys.stderr)
         return []
 
 
-def build_site_config(base_url: str, site: str) -> dict[str, Any]:
+def build_site_config(base_url: str, site: str, previous: dict[str, Any]) -> dict[str, Any]:
     metadata = fetch_site_metadata(base_url, site)
     values: dict[str, Any] = {}
 
     for field in DATA_TYPES:
         raw = metadata.get(field)
-        values[field] = as_string_list(raw) if isinstance(raw, list) else fetch_site_field(base_url, site, field)
+        values[field] = as_string_list(raw) if isinstance(raw, list) else fetch_site_field(base_url, site, field, previous)
 
-    dns = metadata.get("dns")
-    external = metadata.get("external")
+    dns = metadata.get("dns", previous.get("dns"))
+    external = metadata.get("external", previous.get("external"))
 
     return {
         "domains": values["domains"],
@@ -199,7 +261,7 @@ def build_site_config(base_url: str, site: str) -> dict[str, Any]:
         "external": {field: as_string_list(external.get(field)) for field in DATA_TYPES}
         if isinstance(external, dict)
         else DEFAULT_EXTERNAL.copy(),
-        "replace": normalize_replace(metadata.get("replace", DEFAULT_REPLACE)),
+        "replace": normalize_replace(metadata.get("replace", previous.get("replace", DEFAULT_REPLACE))),
     }
 
 
@@ -211,14 +273,18 @@ def write_json(path: Path, data: dict[str, Any]) -> None:
 def collect_public_set(name: str, base_url: str) -> None:
     print(f"collecting {name} from {base_url}", file=sys.stderr)
     target = CONFIG_ROOT / name
-    if target.exists():
-        shutil.rmtree(target)
 
     groups = discover_groups(base_url, name)
-    for index, (site, group) in enumerate(groups.items(), start=1):
-        print(f"[{name} {index}/{len(groups)}] {site}", file=sys.stderr)
-        config = build_site_config(base_url, site)
-        write_json(target / path_part(group) / f"{path_part(site)}.json", config)
+    with tempfile.TemporaryDirectory() as tmp:
+        collected = Path(tmp) / name
+        for index, (site, group) in enumerate(groups.items(), start=1):
+            print(f"[{name} {index}/{len(groups)}] {site}", file=sys.stderr)
+            relative_path = Path(path_part(group)) / f"{path_part(site)}.json"
+            previous = load_existing_site_config(target / relative_path)
+            config = build_site_config(base_url, site, previous)
+            write_json(collected / relative_path, config)
+        assert_no_large_drop(name, target, collected)
+        replace_dir(target, collected)
 
 
 def normalize_config_modes() -> None:
