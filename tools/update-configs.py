@@ -469,10 +469,23 @@ def normalize_config_modes() -> None:
 
 
 def main() -> int:
-    collect_master()
+    errors: list[str] = []
+    try:
+        collect_master()
+    except Exception as error:
+        errors.append(f"master: {error}")
+        print(f"master: refresh failed: {error}", file=sys.stderr)
+
     for name, base_url in PUBLIC_SETS.items():
-        collect_public_set(name, base_url)
+        try:
+            collect_public_set(name, base_url)
+        except Exception as error:
+            errors.append(f"{name}: {error}")
+            print(f"{name}: refresh failed: {error}", file=sys.stderr)
+
     normalize_config_modes()
+    if errors:
+        raise RuntimeError("refresh failed for: " + "; ".join(errors))
     return 0
 
 
