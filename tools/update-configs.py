@@ -293,6 +293,26 @@ def count_entries(path: Path) -> dict[str, int]:
     return counts
 
 
+def allow_large_drop() -> bool:
+    return os.getenv("IPLIST_REFRESH_ALLOW_LARGE_DROP", "").lower() in {"1", "true", "yes"}
+
+
+def max_drop_ratio() -> float:
+    return float(os.getenv("IPLIST_REFRESH_MAX_DROP_RATIO", DEFAULT_MAX_DROP_RATIO))
+
+
+def suspicious_drop(old: int, new: int) -> tuple[int, float] | None:
+    if old < 100:
+        return None
+    dropped = old - new
+    if dropped <= 0:
+        return None
+    ratio = dropped / old
+    if ratio <= max_drop_ratio():
+        return None
+    return dropped, ratio
+
+
 def restore_field(previous: Path, collected: Path, field: str) -> None:
     for old_path in previous.rglob("*.json"):
         relative = old_path.relative_to(previous)
@@ -310,9 +330,8 @@ def restore_field(previous: Path, collected: Path, field: str) -> None:
 
 
 def repair_large_drops(name: str, previous: Path, collected: Path) -> None:
-    if os.getenv("IPLIST_REFRESH_ALLOW_LARGE_DROP", "").lower() in {"1", "true", "yes"}:
+    if allow_large_drop():
         return
-    max_drop_ratio = float(os.getenv("IPLIST_REFRESH_MAX_DROP_RATIO", DEFAULT_MAX_DROP_RATIO))
     for _ in range(len(DATA_TYPES)):
         old_counts = count_entries(previous)
         new_counts = count_entries(collected)
@@ -320,13 +339,9 @@ def repair_large_drops(name: str, previous: Path, collected: Path) -> None:
         for field in DATA_TYPES:
             old = old_counts[field]
             new = new_counts[field]
-            if old < 100:
-                continue
-            dropped = old - new
-            if dropped <= 0:
-                continue
-            ratio = dropped / old
-            if ratio > max_drop_ratio:
+            drop = suspicious_drop(old, new)
+            if drop:
+                dropped, ratio = drop
                 print(
                     f"{name}: suspicious {field} drop {old} -> {new} "
                     f"(-{dropped}, -{ratio:.1%}); restoring previous {field} values",
@@ -419,6 +434,17 @@ def build_site_config(base_url: str, site: str, previous: dict[str, Any]) -> dic
     for field in DATA_TYPES:
         raw = metadata.get(field)
         values[field] = as_string_list(raw) if isinstance(raw, list) and field not in damaged_fields else fetch_site_field(base_url, site, field, previous)
+        old_values = as_string_list(previous.get(field))
+        if not allow_large_drop():
+            drop = suspicious_drop(len(old_values), len(values[field]))
+            if drop:
+                dropped, ratio = drop
+                print(
+                    f"{site}/{field}: suspicious entry drop {len(old_values)} -> {len(values[field])} "
+                    f"(-{dropped}, -{ratio:.1%}); keeping previous values",
+                    file=sys.stderr,
+                )
+                values[field] = old_values
 
     dns = metadata.get("dns", previous.get("dns"))
     external = metadata.get("external", previous.get("external"))
