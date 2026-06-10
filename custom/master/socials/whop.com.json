@@ -1,0 +1,55 @@
+{
+  "domains": [
+    "api.whop.com",
+    "apps.whop.com",
+    "assets.whop.com",
+    "brand.whop.com",
+    "cdn.whop.com",
+    "checkout.whop.com",
+    "docs.whop.com",
+    "help.whop.com",
+    "js.whop.com",
+    "mcp.whop.com",
+    "media.whop.com",
+    "network.whop.com",
+    "newsroom.whop.com",
+    "sandbox-api.whop.com",
+    "sandbox-js.whop.com",
+    "sandbox.whop.com",
+    "status.whop.com",
+    "t.whop.tw",
+    "whop.com",
+    "whop.new",
+    "whop.tw",
+    "www.whop.com"
+  ],
+  "dns": [
+    "1.1.1.1:53",
+    "8.8.8.8:53",
+    "77.88.8.88:53",
+    "127.0.0.11:53"
+  ],
+  "timeout": 0,
+  "as": [
+    "AS16509"
+  ],
+  "ip4": [
+    "76.76.21.21"
+  ],
+  "ip6": [],
+  "cidr4": [
+    "76.76.21.0/24"
+  ],
+  "cidr6": [],
+  "external": {
+    "domains": [],
+    "ip4": [],
+    "ip6": [],
+    "cidr4": [],
+    "cidr6": []
+  },
+  "replace": {
+    "cidr4": {},
+    "cidr6": {}
+  }
+}
