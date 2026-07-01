@@ -1,0 +1,41 @@
+{
+    "domains": [
+        "app.vssps.visualstudio.com",
+        "az764295.vo.msecnd.net",
+        "download.visualstudio.microsoft.com",
+        "gallery.vsassets.io",
+        "gallerycdn.vsassets.io",
+        "go.microsoft.com",
+        "marketplace.visualstudio.com",
+        "raw.githubusercontent.com",
+        "update.code.visualstudio.com",
+        "visualstudio.com",
+        "vscode-cdn.net",
+        "vscode-sync.trafficmanager.net",
+        "vscode-unpkg.net",
+        "vscode.blob.core.windows.net",
+        "www.visualstudio.com"
+    ],
+    "dns": [
+        "1.1.1.1:53",
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53"
+    ],
+    "timeout": 0,
+    "ip4": [],
+    "ip6": [],
+    "cidr4": [],
+    "cidr6": [],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {},
+        "cidr6": {}
+    }
+}

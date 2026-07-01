@@ -1,0 +1,43 @@
+{
+    "domains": [
+        "report.appmetrica.yandex.net",
+        "storage.yandexcloud.net",
+        "twinby-rk.storage.yandexcloud.net",
+        "twinby.ru",
+        "www.twinby.ru"
+    ],
+    "dns": [
+        "1.1.1.1:53",
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53"
+    ],
+    "timeout": 0,
+    "ip4": [
+        "158.160.111.197",
+        "213.180.193.226",
+        "213.180.193.243"
+    ],
+    "ip6": [
+        "2a02:6b8::1d9",
+        "2a02:6b8::3:207"
+    ],
+    "cidr4": [
+        "158.160.0.0/16",
+        "213.180.193.0/24"
+    ],
+    "cidr6": [
+        "2a02:6b8::/62"
+    ],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {},
+        "cidr6": {}
+    }
+}
