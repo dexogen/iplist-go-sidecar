@@ -1,0 +1,47 @@
+{
+    "domains": [
+        "account.xiaomi.com",
+        "api.account.xiaomi.com",
+        "api.device.xiaomi.net",
+        "api.io.mi.com",
+        "cdn.cnbj1.fds.api.mi-img.com",
+        "cdn.ksyru0-eco.fds.api.mi-img.com",
+        "cnbj1.fds.api.xiaomi.com",
+        "data.sec.miui.com",
+        "home.mi.com",
+        "iot-cdn.io.mi.com",
+        "mi.com",
+        "resolver.msg.global.xiaomi.net",
+        "ru.api.io.mi.com",
+        "ru.core.api.io.mi.com",
+        "ru.home.mi.com",
+        "ru.stream.api.mijia.tech",
+        "sdkconfig.rus.xiaomi.com",
+        "sts.api.io.mi.com",
+        "sts.api.mijia.tech",
+        "tracking.rus.miui.com",
+        "www.mi.com"
+    ],
+    "dns": [
+        "1.1.1.1:53",
+        "127.0.0.11:53",
+        "77.88.8.88:53",
+        "8.8.8.8:53"
+    ],
+    "timeout": 0,
+    "ip4": [],
+    "ip6": [],
+    "cidr4": [],
+    "cidr6": [],
+    "external": {
+        "domains": [],
+        "ip4": [],
+        "ip6": [],
+        "cidr4": [],
+        "cidr6": []
+    },
+    "replace": {
+        "cidr4": {},
+        "cidr6": {}
+    }
+}
