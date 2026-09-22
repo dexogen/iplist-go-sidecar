@@ -204,21 +204,25 @@ def collect_public(name, previous, allow=False, workers=2):
         site_name, group = item
         old = old_sites.get(site_name, {})
         group = group or old.get("group", name)
+        retained_metadata = False
         try:
             try:
                 data = fetch_json(api(base, site=site_name))
                 if not isinstance(data, dict) or not isinstance(data.get(site_name), dict):
                     raise ValueError("site missing from response")
+                if not {"dns", "external", "replace"} <= data[site_name].keys():
+                    raise ValueError("incomplete site metadata")
                 site = validate_site(data[site_name], site_name, group)
             except (RuntimeError, ValueError):
                 fields = {f: fetch_field(base, site_name, f) for f in FIELDS}
                 if not old:
                     raise ValueError("new site metadata unavailable")
                 site = validate_site({**old, **fields}, site_name, group)
+                retained_metadata = True
             check_drop(old, site, allow)
             if not any(site[f] for f in FIELDS) and not old:
                 raise ValueError("empty new site")
-            return site_name, site, None
+            return site_name, site, f"{site_name}: fields recovered; previous metadata retained" if retained_metadata else None
         except (RuntimeError, ValueError) as exc:
             return site_name, old or None, f"{site_name}: {exc}"
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
