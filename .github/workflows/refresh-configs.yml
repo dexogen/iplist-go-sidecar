@@ -50,7 +50,6 @@ jobs:
         shell: bash
         run: |
           args=()
-          if [ -d config ]; then args+=(--seed-dir config); fi
           if [ "$ALLOW_REMOVALS" = true ]; then args+=(--allow-removals); fi
           python tools/update-configs.py "${args[@]}"
       - name: Publish data release
