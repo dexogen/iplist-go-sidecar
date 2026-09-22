@@ -1,25 +1,45 @@
 # iplist-go-sidecar
 
-[![Refresh configs](https://github.com/dexogen/iplist-go-sidecar/actions/workflows/refresh-configs.yml/badge.svg?branch=main)](https://github.com/dexogen/iplist-go-sidecar/actions/workflows/refresh-configs.yml)
-![Last run](https://img.shields.io/badge/dynamic/json?label=last%20run&query=%24.workflow_runs%5B0%5D.updated_at&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fdexogen%2Fiplist-go-sidecar%2Factions%2Fworkflows%2Frefresh-configs.yml%2Fruns%3Fbranch%3Dmain%26per_page%3D1)
+Сборщик списков для [iplist-go](https://github.com/dexogen/iplist-go). Каждые шесть часов получает master из `rekryt/iplist`, beta и russia из публичных API, применяет `custom`, загружает `external` и актуальные префиксы ASN.
 
-Sidecar-репозиторий для `iplist-go`.
-
-Он собирает конфиги из трех источников и складывает их в один простой layout:
+Готовые данные публикуются в [релизе data](https://github.com/dexogen/iplist-go-sidecar/releases/tag/data). Постоянный адрес манифеста:
 
 ```text
-config/
-  master/
-  beta/
-  russia/
+https://github.com/dexogen/iplist-go-sidecar/releases/download/data/manifest.json
 ```
 
-Источники:
+Приложение получает изменения без пересборки образа. Файлы объектов имеют имена по SHA-256 сжатого содержимого. Сначала публикуются объекты, затем манифест; при временной недоступности манифеста потребитель сохраняет предыдущую версию. Предыдущие объекты удерживаются минимум два дня и пока они нужны текущему или предыдущему снимку. Генерируемые снимки не коммитятся в Git.
 
-- `master` - `config/` из [`rekryt/iplist`](https://github.com/rekryt/iplist);
-- `beta` - дамп публичного API `https://beta.iplist.opencck.org`;
-- `russia` - дамп публичного API `https://russia.iplist.opencck.org`.
+## Надежность
 
-GitHub Actions регулярно запускает сборку и коммитит изменения только если конфиги реально поменялись.
+- Gzip, два параллельных запроса, повторы с задержкой и учет `Retry-After`.
+- Проверка структуры, IP/CIDR и семейств адресов. Отдельные некорректные доменные строки исключаются с перечислением в `rejected_domains`; полностью поврежденное поле отклоняется.
+- При исчезновении сайта, обнулении непустого поля или уменьшении более чем на 35% сохраняется предыдущая запись. Проверка действует и на небольшие списки.
+- Смена группы не меняет идентичность сайта. Поврежденный JSON не восстанавливается догадками: поля запрашиваются отдельно, а при неудаче сохраняется прежний сайт.
+- Наборы обновляются независимо. Манифест сообщает `status`, `last_success_at`, `checked_at` и причины сохранения старых данных. Новая публикация не делает старый источник свежим.
+- Состояние первичных источников и внешних ресурсов хранится отдельным сжатым объектом `state`, чтобы пользовательские дополнения не накапливались при повторных обновлениях.
 
-Обычный push в репозиторий не запускает refresh. Триггеры только такие: ручной запуск, расписание и изменение самого workflow.
+Для намеренного удаления или подтвержденного большого сокращения есть ручной параметр workflow `allow_removals`. Он разрешает уменьшения для одного запуска; ошибки структуры и контрольных сумм по-прежнему отклоняются.
+
+## Пользовательские списки
+
+```text
+custom/<set>/<group>/<site>.json
+```
+
+Массивы объединяются с первичными данными, `replace` дополняется, явные `dns` и `timeout` заменяют исходные. Поле `as` содержит ASN, например `AS57976`. Домены, сети, дополнительные источники и ASN разрешаются перед публикацией. Локальный DNS выполняется отдельно каждой установкой приложения.
+
+## Проверка и ручной сбор
+
+```bash
+python -m unittest discover -s tools -p 'test_*.py' -v
+python tools/update-configs.py --output dist
+```
+
+Обычный запуск требует предыдущий опубликованный снимок. Для первоначальной загрузки из старого дерева конфигов:
+
+```bash
+python tools/update-configs.py --seed-dir config --output dist
+```
+
+`--previous-url` позволяет использовать другой HTTP-хостинг, включая Pages. Публикация в release использует `GH_TOKEN` только в GitHub Actions; потребителям токен не нужен. Подробности текущего прохода находятся в `collection-summary.json` и отчете workflow.

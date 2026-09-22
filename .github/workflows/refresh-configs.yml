@@ -2,44 +2,81 @@ name: Refresh configs
 
 on:
   workflow_dispatch:
+    inputs:
+      allow_removals:
+        description: Accept intentional removals and large decreases
+        type: boolean
+        default: false
   push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/refresh-configs.yml"
+    branches: [main, 'feat/**', 'fix/**']
+    paths: ['tools/**', 'custom/**', '.github/workflows/**']
+  pull_request:
+    paths: ['tools/**', 'custom/**', '.github/workflows/**']
   schedule:
     - cron: "17 */6 * * *"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: refresh-configs
+  group: refresh-configs-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  refresh:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: python -m unittest discover -s tools -p 'test_*.py' -v
 
-      - name: Collect configs
-        run: python tools/update-configs.py
-
-      - name: Commit changes
+  refresh:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Collect validated snapshots
+        env:
+          ALLOW_REMOVALS: ${{ inputs.allow_removals }}
         shell: bash
         run: |
-          git status --short
-          if [ -z "$(git status --porcelain -- config)" ]; then
-            echo "configs are already up to date"
-            exit 0
+          args=()
+          if [ -d config ]; then args+=(--seed-dir config); fi
+          if [ "$ALLOW_REMOVALS" = true ]; then args+=(--allow-removals); fi
+          python tools/update-configs.py "${args[@]}"
+      - name: Publish data release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/publish-snapshot.py
+      - name: Collection report
+        if: always()
+        shell: bash
+        run: |
+          if [ -f dist/collection-summary.json ]; then
+            python - <<'PYREPORT' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          report = json.loads(Path('dist/collection-summary.json').read_text())
+          print('| Set | Status | Sites | Last full success | Warnings |')
+          print('| --- | --- | ---: | --- | ---: |')
+          for key, value in report.items():
+              print(f"| {key} | {value['status']} | {value['sites']} | {value['last_success_at']} | {len(value['warnings'])} |")
+              for warning in value['warnings']:
+                  print(f"\n- {key}: {warning}")
+          PYREPORT
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add config
-          git commit -m "Refresh collected configs"
-          git push
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: collection-report
+          path: dist/collection-summary.json
+          retention-days: 14
