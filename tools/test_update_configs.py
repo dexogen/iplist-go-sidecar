@@ -35,6 +35,16 @@ class CollectionTests(unittest.TestCase):
             with self.subTest(field=field, value=value), self.assertRaises(ValueError):
                 c.normalize(field, value)
 
+    def test_recovered_fields_do_not_mark_old_metadata_fresh(self):
+        old = site()
+        previous = {"sites": {old["name"]: old}, "last_success_at": "2026-09-20T00:00:00Z"}
+        incomplete = {k: v for k, v in old.items() if k != "external"}
+        with patch.object(c, "discover", return_value={old["name"]: "tools"}), patch.object(c, "fetch_json", return_value={old["name"]: incomplete}), patch.object(c, "fetch_field", side_effect=lambda base, name, field: old[field]):
+            result = c.collect_public("beta", previous)
+        self.assertEqual(result["sites"], previous["sites"])
+        self.assertEqual(result["last_success_at"], previous["last_success_at"])
+        self.assertIn("previous metadata retained", result["warnings"][0])
+
     def test_catalog_exception_uses_fallback(self):
         with patch.object(c, "fetch_json", side_effect=[RuntimeError("503"), {"example.org": ["example.org"]}]) as fetch:
             self.assertEqual(c.discover("https://example.org"), {"example.org": None})
